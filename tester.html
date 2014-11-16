@@ -1,0 +1,154 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Meteor</title>
+    <!-- CSS Section -->
+
+</head>
+<body onload="init();">
+    <canvas id="canvas" width="640" height="480" style="background-color:black;border:2px solid black;"></canvas>
+
+    <!-- Game Framework -->
+    <script type="text/javascript" src="scripts/src/createjs/events/Event.js"></script>
+	<script type="text/javascript" src="scripts/src/createjs/events/EventDispatcher.js"></script>
+	<script type="text/javascript" src="scripts/src/createjs/utils/IndexOf.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/utils/UID.js"></script>
+	<script type="text/javascript" src="scripts/src/createjs/utils/Ticker.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/geom/Matrix2D.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/geom/Point.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/geom/Rectangle.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/Shadow.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/SpriteSheet.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/Graphics.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/DisplayObject.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/Container.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/Stage.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/Bitmap.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/Sprite.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/BitmapAnimation.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/BitmapText.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/Shape.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/Text.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/DOMElement.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/events/MouseEvent.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/filters/Filter.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/ui/ButtonHelper.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/ui/Touch.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/utils/SpriteSheetUtils.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/utils/SpriteSheetBuilder.js"></script>
+	
+	
+	
+    <!-- Game Files
+	<script src="Scripts/states/play.js"></script>
+	<script src="Scripts/game.js"></script>
+    <script src="Scripts/constants.js"></script>
+    <script src="Scripts/managers/asset.js"></script>
+    <script src="Scripts/objects/gameobject.js"></script>
+    <script src="Scripts/objects/plane.js"></script>
+    <script src="Scripts/objects/island.js"></script>
+    <script src="Scripts/objects/cloud.js"></script>
+    <script src="Scripts/objects/ocean.js"></script>
+    <script src="Scripts/objects/scoreboard.js"></script>
+    <script src="Scripts/states/play.js"></script>
+    <script src="Scripts/states/menu.js"></script>
+    <script src="Scripts/states/gameover.js"></script>
+    <script src="Scripts/game.js"></script>
+	-->
+	<script type="text/javascript">
+        var stage;
+		var shipSpeed = 10;
+		var ship,meteor0,meteor1,meteor2;
+		function init() {
+
+			// makes canvas as the stage
+			stage = new createjs.Stage(document.getElementById("canvas"));
+
+			//create ship
+			ship = new createjs.Bitmap("assets/ship2.png");
+			meteor = new createjs.Bitmap("assets/box.png");
+			meteor1 = new createjs.Bitmap("assets/meteor.png");
+			meteor2 = new createjs.Bitmap("assets/meteor.png");
+			
+
+			// Add Grant to the stage, and add it as a listener to Ticker to get updates each frame.
+			stage.addChild(ship);
+			stage.addChild(meteor);
+			meteor.addEventListener("click", function(event) { alert("clicked"); });
+			meteor.y = 100;ship.y = 100;//180
+			meteor.x = 100;ship.x = 100;
+
+			//ship.x >= meteor.x-55 
+			//meteor
+			//ship.x <= meteor.x+40&&meteor ship.x >= meteor.x-45
+			//ship.y>=meteor.y+120&&ship.y<=meteor.y+170
+			
+			//detects start and bottom ship.y >= meteor.y+90
+			/*
+			//detects object coordinates
+			if(ship.y <= meteor.y+160 && ship.y >= meteor.y+90){
+				alert("y");
+			}
+			*/
+			//calls game loop every second
+			createjs.Ticker.setFPS(60);
+			createjs.Ticker.addEventListener("tick", stage);
+			createjs.Ticker.addEventListener("tick", gameLoop);
+		}
+		//game loop
+		function gameLoop(){
+		}
+		function moveMeteor(meteor){
+			
+			if(ship.x >= meteor.x || ship.x <= meteor.x + 100&&ship.y>=meteor.y && ship.y <= meteor.y - 100){
+				alert("touch");
+			}
+			meteor.x -= 5;
+			meteor.y += 5;
+			if(meteor.x < -100){
+				meteor.x=Math.floor((Math.random() * 940) + 100);
+				meteor.y = -400;
+			}
+			if(meteor.y > 480){
+				meteor.y = -400;
+			}
+			
+		}
+		//calls function when key pressed
+		document.onkeydown = checkKey;
+		function checkKey(e) {
+			e = e || window.event;
+			switch (e.keyCode) {
+				case 40:
+				ship.y += shipSpeed;
+				break;
+				case 38:
+				ship.y -= shipSpeed;
+				break;
+				case 39:
+				ship.x += shipSpeed;
+				break;
+				case 37:
+				ship.x -=shipSpeed;
+				break;			
+			}
+			//left
+			
+			//right
+			
+			//up
+			
+			//down
+			//ship.y>=meteor.y+50&&ship.y<=meteor.y+10&&ship.x <= meteor.x+30&&ship.x >= meteor.x-35
+			//u,d,l,r
+			//ship.y<=meteor.y+10&&ship.y>=meteor.y-30&&ship.x <= meteor.x+30&&ship.x >= meteor.x-38
+			if(ship.y<=meteor.y+20&&ship.y>=meteor.y-40&&ship.x <= meteor.x+20&&ship.x >= meteor.x-38){
+				alert("x");
+			}
+		}
+
+	</script>
+</body>
+</html>

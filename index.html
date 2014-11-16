@@ -1,0 +1,166 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Meteor</title>
+    <!-- CSS Section -->
+	<style>
+		#canvas{
+			background-image: url("assets/space.gif");
+		}
+	</style>
+</head>
+<body onload="init();">
+    <canvas id="canvas" width="640" height="480" style="border:2px solid black;">
+	</canvas>
+
+    <!-- Game Framework	-->
+	<script src="Scripts/js/frame/easeljs71.min.js"></script>
+	<script src="Scripts/js/frame/preloadjs41.min.js"></script>
+	<script src="Scripts/js/frame/soundjs52.min.js"></script>
+	<script type="text/javascript">
+        //varaibles
+		var stage;
+		var shipSpeed = 20;
+		var ship,meteor0,meteor1,meteor2,boxPower,playStage,btnPlay;
+		var lives=3;
+		var score=0,reset=0;
+		var message;
+		function init() {
+			
+			// makes canvas as the stage
+			stage = new createjs.Stage(document.getElementById("canvas"));
+			stage.enableMouseOver(20);
+			//create objects
+			ship = new createjs.Bitmap("assets/ship2.png");
+			meteor0 = new createjs.Bitmap("assets/meteor.png");
+			meteor1 = new createjs.Bitmap("assets/meteor.png");
+			meteor2 = new createjs.Bitmap("assets/meteor.png");
+			boxPower = new createjs.Bitmap("assets/box.png");
+			playStage = new createjs.Bitmap("assets/play.jpg");
+			btnPlay = new createjs.Bitmap("assets/btnstart.png");
+			message = new createjs.Text("Lives:3"+new Array(42).join(' ')+"Stars:0", "18px Arial", "#FFF");
+			//calls game loop every second
+			createjs.Ticker.setFPS(60);
+			createjs.Ticker.addEventListener("tick", stage);
+			startScreen();
+		}
+		//start screen with play option and initializes values
+		function startScreen(){
+			stage.addChild(playStage);
+			var circle = new createjs.Shape();
+			circle.graphics.beginFill("red").drawCircle(0, 0, 30);
+			circle.x = 300;
+			circle.y = 300;
+			
+			circle.on("click", function() {
+				startGame();
+				stage.removeChild(circle);
+				stage.removeChild(playStage);
+				stage.removeChild(btnPlay);
+			});
+			message.x = 0;
+			message.y = 10;
+			stage.addChild(circle);
+			stage.addChild(btnPlay);
+			btnPlay.y=250;
+			btnPlay.x=250;
+			boxPower.x=600;
+			boxPower.y=Math.floor((Math.random() * 450) + 10);
+			stage.update();
+		}
+		//game screen that calls all components in order for user to play
+		function startGame(){
+			
+			// Add Grant to the stage, and add it as a listener to Ticker to get updates each frame.
+			stage.addChild(message);
+			stage.addChild(ship);
+			stage.addChild(meteor0);
+			stage.addChild(meteor1);
+			stage.addChild(meteor2);
+			stage.addChild(boxPower);
+			createjs.Ticker.addEventListener("tick", gameLoop);
+		}
+		function handleEvt(evt) {
+		alert('hi');
+		}
+		//game loop
+		function gameLoop(){
+			moveMeteor(meteor0);
+			moveMeteor(meteor1);
+			moveMeteor(meteor2);
+			moveBox(boxPower);
+		}
+		//moves the box
+		function moveBox(box){
+			box.x -= 2;
+			if(box.x <=0){
+				//stage.removeChild(box);
+				box.x=1000;
+				boxPower.y=Math.floor((Math.random() * 450) + 10);
+			}
+			if(ship.y<=box.y+20&&ship.y>=box.y-40&&ship.x <= box.x+20&&ship.x >= box.x-38){
+				box.y=800;
+				box.x=800;
+				//stage.removeChild(box);
+				score+=1;
+				reset+=1;
+				//extra life
+				if(reset>=10){
+					lives++;
+					reset=0;
+				}
+				updateText();
+			}
+		}
+		//updates text when called
+		function updateText(){
+			message.text="Lives:"+lives+new Array(42).join(' ')+"Stars:"+score;
+		}
+		//meteor movement and collision with objects
+		function moveMeteor(meteor){
+			//manually crops image for better object collision
+			if( ship.y>=meteor.y+120&&ship.y<=meteor.y+170&&ship.x <= meteor.x+20&&ship.x >= meteor.x-35){
+				meteor.y=-200;
+				meteor.x=Math.floor((Math.random() * 600) + 100);
+				lives--;
+				updateText();
+				gameOver();
+			}
+			//moves meteor
+			meteor.x -= 5;
+			meteor.y += 5;
+			//resets meteor
+			if(meteor.x < -100){
+				meteor.x=Math.floor((Math.random() * 940) + 100);
+				meteor.y = -400;
+			}
+			if(meteor.y > 480){
+				meteor.y = -400;
+			}
+			
+		}
+		//calls function when key pressed
+		document.onkeydown = keyPress;
+		//move ship on key pressed and keeps ship on screen
+		function keyPress(e) {
+			e = e || window.event;
+			if(ship.x > -20 && e.keyCode ==37){
+				ship.x -=shipSpeed;
+			}
+			else if(ship.x <580 && e.keyCode ==39){
+				ship.x += shipSpeed;
+			}
+			else if(ship.y<421 && e.keyCode ==40){
+				ship.y += shipSpeed;
+			}
+			else if(ship.y>0 && e.keyCode ==38){
+				ship.y -= shipSpeed;
+			}
+		}
+
+
+	</script>
+</body>
+</html>
