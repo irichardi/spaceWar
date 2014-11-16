@@ -24,9 +24,11 @@
 		var stage;
 		var shipSpeed = 20;
 		var ship,meteor0,meteor1,meteor2,boxPower,playStage,btnPlay;
-		var lives=3;
+		var lives=1;
 		var score=0,reset=0;
 		var message,endMessage;
+		var collectSound = new Audio('assets/spin.wav');
+		var destroySound = new Audio('assets/lose.wav');
 		function init() {
 			
 			// makes canvas as the stage
@@ -40,7 +42,7 @@
 			boxPower = new createjs.Bitmap("assets/box.png");
 			playStage = new createjs.Bitmap("assets/play.jpg");
 			btnPlay = new createjs.Bitmap("assets/btnstart.png");
-			message = new createjs.Text("Lives:3"+new Array(42).join(' ')+"Stars:0", "18px Arial", "#FFF");
+			message = new createjs.Text("Lives:"+new Array(42).join(' ')+"Stars:0", "18px Arial", "#FFF");
 			messageEnd = new createjs.Text("Game End", "18px Arial", "#FFF");
 			//calls game loop every second
 			createjs.Ticker.setFPS(60);
@@ -75,6 +77,7 @@
 		function startGame(){
 			
 			// Add Grant to the stage, and add it as a listener to Ticker to get updates each frame.
+			lives=1;
 			stage.addChild(message);
 			stage.addChild(ship);
 			stage.addChild(meteor0);
@@ -97,7 +100,9 @@
 		}
 		//moves the box
 		function moveBox(box){
-			box.x -= 2;
+			if(lives>0){
+				box.x -= 2;
+			}
 			if(box.x <=0){
 				//stage.removeChild(box);
 				box.x=1000;
@@ -109,6 +114,7 @@
 				//stage.removeChild(box);
 				score+=1;
 				reset+=1;
+				collectSound.play();
 				//extra life
 				if(reset>=10){
 					lives++;
@@ -131,11 +137,14 @@
 				updateText();
 				if(lives <=3){
 					gameOver();
+					destroySound.play();
 				}
 			}
 			//moves meteor
-			meteor.x -= 5;
-			meteor.y += 5;
+			if(lives>0){
+				meteor.x -= 5;
+				meteor.y += 5;
+			}
 			//resets meteor
 			if(meteor.x < -100){
 				meteor.x=Math.floor((Math.random() * 940) + 100);
@@ -155,7 +164,6 @@
 			messageEnd.text="You collected "+score+" stars!";
 			stage.addChild(messageEnd);
 			//turns off everything
-			lives=3;
 			score=0;
 			stage.removeChild(ship);
 			stage.removeChild(meteor0);
