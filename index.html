@@ -29,6 +29,7 @@
 		var message,endMessage;
 		var collectSound = new Audio('assets/spin.wav');
 		var destroySound = new Audio('assets/lose.wav');
+		var music = new Audio('assets/music.mp3');
 		function init() {
 			
 			// makes canvas as the stage
@@ -47,6 +48,7 @@
 			//calls game loop every second
 			createjs.Ticker.setFPS(60);
 			startScreen();
+			music.play();
 		}
 		//start screen with play option and initializes values
 		function startScreen(){
