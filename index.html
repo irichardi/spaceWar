@@ -26,7 +26,7 @@
 		var ship,meteor0,meteor1,meteor2,boxPower,playStage,btnPlay;
 		var lives=3;
 		var score=0,reset=0;
-		var message;
+		var message,endMessage;
 		function init() {
 			
 			// makes canvas as the stage
@@ -41,33 +41,34 @@
 			playStage = new createjs.Bitmap("assets/play.jpg");
 			btnPlay = new createjs.Bitmap("assets/btnstart.png");
 			message = new createjs.Text("Lives:3"+new Array(42).join(' ')+"Stars:0", "18px Arial", "#FFF");
+			messageEnd = new createjs.Text("Game End", "18px Arial", "#FFF");
 			//calls game loop every second
 			createjs.Ticker.setFPS(60);
-			createjs.Ticker.addEventListener("tick", stage);
 			startScreen();
 		}
 		//start screen with play option and initializes values
 		function startScreen(){
+			createjs.Ticker.addEventListener("tick", stage);
 			stage.addChild(playStage);
 			var circle = new createjs.Shape();
 			circle.graphics.beginFill("red").drawCircle(0, 0, 30);
 			circle.x = 300;
-			circle.y = 300;
-			
-			circle.on("click", function() {
-				startGame();
-				stage.removeChild(circle);
-				stage.removeChild(playStage);
-				stage.removeChild(btnPlay);
-			});
-			message.x = 0;
-			message.y = 10;
+			circle.y = 300;		
 			stage.addChild(circle);
 			stage.addChild(btnPlay);
 			btnPlay.y=250;
 			btnPlay.x=250;
 			boxPower.x=600;
 			boxPower.y=Math.floor((Math.random() * 450) + 10);
+			circle.on("click", function() {
+				message.x = 0;
+				message.y = 10;
+				stage.removeChild(messageEnd);
+				stage.removeChild(circle);
+				stage.removeChild(playStage);
+				stage.removeChild(btnPlay);
+				startGame();
+			});
 			stage.update();
 		}
 		//game screen that calls all components in order for user to play
@@ -81,6 +82,8 @@
 			stage.addChild(meteor2);
 			stage.addChild(boxPower);
 			createjs.Ticker.addEventListener("tick", gameLoop);
+			updateText();
+			stage.update();
 		}
 		function handleEvt(evt) {
 		alert('hi');
@@ -122,11 +125,13 @@
 		function moveMeteor(meteor){
 			//manually crops image for better object collision
 			if( ship.y>=meteor.y+120&&ship.y<=meteor.y+170&&ship.x <= meteor.x+20&&ship.x >= meteor.x-35){
-				meteor.y=-200;
-				meteor.x=Math.floor((Math.random() * 600) + 100);
 				lives--;
+				meteor.y =-200;
+				meteor.x =Math.floor((Math.random() * 600) + 100);
 				updateText();
-				gameOver();
+				if(lives <=3){
+					gameOver();
+				}
 			}
 			//moves meteor
 			meteor.x -= 5;
@@ -140,6 +145,23 @@
 				meteor.y = -400;
 			}
 			
+		}
+		//function game over
+		function gameOver(){
+			//display end message
+			startScreen();
+			messageEnd.x = 250;
+			messageEnd.y = 200;
+			messageEnd.text="You collected "+score+" stars!";
+			stage.addChild(messageEnd);
+			//turns off everything
+			lives=3;
+			score=0;
+			stage.removeChild(ship);
+			stage.removeChild(meteor0);
+			stage.removeChild(meteor1);
+			stage.removeChild(meteor2);
+			stage.removeChild(boxPower);
 		}
 		//calls function when key pressed
 		document.onkeydown = keyPress;
