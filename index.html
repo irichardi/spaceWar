@@ -23,13 +23,15 @@
         //varaibles
 		var stage;
 		var shipSpeed = 20;
-		var ship,meteor0,meteor1,meteor2,boxPower,playStage,btnPlay;
-		var lives=1;
-		var score=0,reset=0;
+		var ship,meteor0,meteor1,meteor2,meteor3,boxPower,playStage,btnPlay,enemyShip,blueLaser,redLaser;
+		var lives=1,changeDifficulty=2;
+		var score=0,reset=0,lifeBoostLimit = 3,meteorSpeed=5,numberOfMeteor=3,resetLaser=0, direction=1,enemyHealth=1000;
 		var message,endMessage;
 		var collectSound = new Audio('assets/spin.wav');
 		var destroySound = new Audio('assets/lose.wav');
 		var music = new Audio('assets/music.mp3');
+		//loops through sound
+		music.loop=true;
 		function init() {
 			
 			// makes canvas as the stage
@@ -40,30 +42,61 @@
 			meteor0 = new createjs.Bitmap("assets/meteor.png");
 			meteor1 = new createjs.Bitmap("assets/meteor.png");
 			meteor2 = new createjs.Bitmap("assets/meteor.png");
+			meteor3 = new createjs.Bitmap("assets/meteor.png");
 			boxPower = new createjs.Bitmap("assets/box.png");
 			playStage = new createjs.Bitmap("assets/play.jpg");
 			btnPlay = new createjs.Bitmap("assets/btnstart.png");
 			message = new createjs.Text("Lives:"+new Array(42).join(' ')+"Stars:0", "18px Arial", "#FFF");
 			messageEnd = new createjs.Text("Game End", "18px Arial", "#FFF");
+			messageDifficulty = new createjs.Text("Difficulty:Medium", "18px Arial", "#FFF");
+			enemyShip = new createjs.Bitmap("assets/enemyShip.png");
+			blueLaser = new createjs.Bitmap("assets/laserBlue.png");
+			redLaser = new createjs.Bitmap("assets/laserRed.png");
 			//calls game loop every second
 			createjs.Ticker.setFPS(60);
 			startScreen();
-			music.play();
+			
 		}
 		//start screen with play option and initializes values
 		function startScreen(){
 			createjs.Ticker.addEventListener("tick", stage);
 			stage.addChild(playStage);
 			var circle = new createjs.Shape();
+			var difficultyOption = new createjs.Shape();
 			circle.graphics.beginFill("red").drawCircle(0, 0, 30);
 			circle.x = 300;
-			circle.y = 300;		
+			circle.y = 300;
+			difficultyOption.graphics.beginFill("yellow").drawCircle(0, 0, 30);
+			messageDifficulty.x = 450;
+			messageDifficulty.y = 240;
+			difficultyOption.x = 500;
+			difficultyOption.y = 300;
+			stage.addChild(messageDifficulty);
+			stage.addChild(difficultyOption);
 			stage.addChild(circle);
 			stage.addChild(btnPlay);
 			btnPlay.y=250;
 			btnPlay.x=250;
 			boxPower.x=600;
 			boxPower.y=Math.floor((Math.random() * 450) + 10);
+			difficultyOption.on("click", function() {				
+				changeDifficulty+=1;
+				if(changeDifficulty>3){
+					changeDifficulty=1;
+				}
+				if(changeDifficulty==1){
+					difficultyOption.graphics.beginFill("green").drawCircle(0, 0, 30);
+					messageDifficulty.text="Difficulty:Easy";
+				}
+				else if(changeDifficulty==2){
+					difficultyOption.graphics.beginFill("yellow").drawCircle(0, 0, 30);
+					messageDifficulty.text="Difficulty:Medium";
+				}
+				else if(changeDifficulty==3){
+					difficultyOption.graphics.beginFill("red").drawCircle(0, 0, 30);
+					messageDifficulty.text="Difficulty:Hard";
+				}
+			});
 			circle.on("click", function() {
 				message.x = 0;
 				message.y = 10;
@@ -71,20 +104,32 @@
 				stage.removeChild(circle);
 				stage.removeChild(playStage);
 				stage.removeChild(btnPlay);
+				stage.removeChild(messageDifficulty);
+				stage.removeChild(difficultyOption);
 				startGame();
 			});
 			stage.update();
 		}
 		//game screen that calls all components in order for user to play
 		function startGame(){
-			
+			direction=Math.floor((Math.random() * 0) + 2);
+			music.play();
+			setSettings(changeDifficulty);
 			// Add Grant to the stage, and add it as a listener to Ticker to get updates each frame.
-			lives=1;
 			stage.addChild(message);
 			stage.addChild(ship);
-			stage.addChild(meteor0);
-			stage.addChild(meteor1);
-			stage.addChild(meteor2);
+			stage.addChild(enemyShip);
+			enemyShip.x=550;
+			if(numberOfMeteor>=2){
+				stage.addChild(meteor0);
+				stage.addChild(meteor1);
+			}
+			if(numberOfMeteor>=3){
+				stage.addChild(meteor2);
+			}
+			if(numberOfMeteor>=4){
+				stage.addChild(meteor3);
+			}
 			stage.addChild(boxPower);
 			createjs.Ticker.addEventListener("tick", gameLoop);
 			updateText();
@@ -95,21 +140,90 @@
 		}
 		//game loop
 		function gameLoop(){
-			moveMeteor(meteor0);
-			moveMeteor(meteor1);
-			moveMeteor(meteor2);
+			if(numberOfMeteor>=2){
+				moveMeteor(meteor0);
+				moveMeteor(meteor1);
+			}
+			if(numberOfMeteor>=3){
+				moveMeteor(meteor2);
+			}
+			if(numberOfMeteor>=4){
+				moveMeteor(meteor3);
+			}
+			moveBlue(blueLaser);
+			moveRed(redLaser);
 			moveBox(boxPower);
+			moveEnemy();
+			
 		}
+		function moveBlue(laser){
+			if(laser.x<600){
+				laser.x += 5;
+			}
+			else if(laser.x>=600){
+				stage.removeChild(blueLaser);
+				resetLaser=0;
+			}
+			//when user destroy ship
+			if(enemyShip.y>=laser.y-45&&enemyShip.y<=laser.y+5&&enemyShip.x <= laser.x+10&&enemyShip.x >= laser.x-35){
+				stage.removeChild(blueLaser);
+				enemyHealth-=100;
+				laser.x=700;
+				if(enemyHealth<=0){
+					enemyHealth=2000;
+					lives+=1;
+				}			
+				updateText();
+			}
+		}
+		function moveRed(laser){
+			if(laser.x>0){
+				laser.x -= 6;
+			}
+			else if(laser.x<=0){
+				stage.removeChild(redLaser);
+			}
+			//when enemy ship destroy user
+			if(ship.y>=laser.y-45&&ship.y<=laser.y+5&&ship.x <= laser.x+10&&ship.x >= laser.x-35){
+				stage.removeChild(redLaser);
+				laser.x=-100;
+				lives-=1;
+				updateText();
+				//ends game if laser destroy ship
+				if(lives <=0){
+					gameOver();
+					destroySound.play();
+				}
+			}			
+		}
+		function moveEnemy(){
+			if(direction==1){
+				enemyShip.y += 5;
+			}
+			else{
+				enemyShip.y -=5;
+			}
+			if(enemyShip.y >=480){
+				enemyShip.y=0;			
+			}else if(enemyShip.y<=0){
+				enemyShip.y = 480;
+			}
+		}
+		//calls function when key pressed
+		document.onkeydown = keyPress;
 		//moves the box
 		function moveBox(box){
+			//moves box while user still has life
 			if(lives>0){
 				box.x -= 2;
 			}
+			//resets box
 			if(box.x <=0){
 				//stage.removeChild(box);
 				box.x=1000;
 				boxPower.y=Math.floor((Math.random() * 450) + 10);
 			}
+			//when boost collides with ship
 			if(ship.y<=box.y+20&&ship.y>=box.y-40&&ship.x <= box.x+20&&ship.x >= box.x-38){
 				box.y=800;
 				box.x=800;
@@ -117,37 +231,59 @@
 				score+=1;
 				reset+=1;
 				collectSound.play();
-				//extra life
-				if(reset>=10){
-					lives++;
-					reset=0;
+				//gain extra depending on how many stars collected
+				if(reset>=lifeBoostLimit){
+					lives+=1;
+					reset=0;					
 				}
 				updateText();
 			}
 		}
 		//updates text when called
 		function updateText(){
-			message.text="Lives:"+lives+new Array(42).join(' ')+"Stars:"+score;
+			message.text="Lives:"+lives+new Array(42).join(' ')+"Stars:"+score+new Array(22).join(' ')+"Enemy Health:"+enemyHealth;
+		}
+		function setSettings(difficulty){
+			if(difficulty==1){
+				lifeBoostLimit=5;
+				lives=5;
+				meteorSpeed=3;
+				numberOfMeteor=2;
+			}
+			if(difficulty==2){
+				lifeBoostLimit=10;
+				lives=3;
+				meteorSpeed=5;
+				numberOfMeteor=3;
+			}
+			if(difficulty==3){
+				lifeBoostLimit=20;
+				lives=1;
+				meteorSpeed=7;
+				numberOfMeteor=4;
+			}
 		}
 		//meteor movement and collision with objects
 		function moveMeteor(meteor){
 			//manually crops image for better object collision
 			if( ship.y>=meteor.y+120&&ship.y<=meteor.y+170&&ship.x <= meteor.x+20&&ship.x >= meteor.x-35){
 				lives--;
+				destroySound.play();
 				meteor.y =-200;
 				meteor.x =Math.floor((Math.random() * 600) + 100);
 				updateText();
-				if(lives <=3){
+				//ends game when user runs out of life
+				if(lives <=0){
 					gameOver();
 					destroySound.play();
 				}
 			}
-			//moves meteor
+			//moves meteor while user still has life
 			if(lives>0){
-				meteor.x -= 5;
-				meteor.y += 5;
+				meteor.x -= meteorSpeed;
+				meteor.y += meteorSpeed;
 			}
-			//resets meteor
+			//resets meteor when reaches off map area
 			if(meteor.x < -100){
 				meteor.x=Math.floor((Math.random() * 940) + 100);
 				meteor.y = -400;
@@ -157,8 +293,10 @@
 			}
 			
 		}
-		//function game over
+		//function restarts the game when called
 		function gameOver(){
+			music.pause();
+			music.currentTime = 0;
 			//display end message
 			startScreen();
 			messageEnd.x = 250;
@@ -171,9 +309,10 @@
 			stage.removeChild(meteor0);
 			stage.removeChild(meteor1);
 			stage.removeChild(meteor2);
+			stage.removeChild(meteor3);
 			stage.removeChild(boxPower);
+			
 		}
-		//calls function when key pressed
 		document.onkeydown = keyPress;
 		//move ship on key pressed and keeps ship on screen
 		function keyPress(e) {
@@ -190,6 +329,18 @@
 			else if(ship.y>0 && e.keyCode ==38){
 				ship.y -= shipSpeed;
 			}
+			if(e.keyCode==32){
+				if(resetLaser ==0 && lives>0){
+					stage.addChild(blueLaser);
+					stage.addChild(redLaser);
+					blueLaser.x = ship.x;
+					blueLaser.y=ship.y+20;
+					redLaser.x = enemyShip.x;
+					redLaser.y=enemyShip.y+20;
+					resetLaser++;
+				}
+			}
+
 		}
 
 

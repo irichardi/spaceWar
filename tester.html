@@ -59,23 +59,32 @@
 	-->
 	<script type="text/javascript">
         var stage;
-		var shipSpeed = 10;
-		var ship,meteor0,meteor1,meteor2;
+		var shipSpeed = 10,resetLaser=0, direction=1;
+		var ship,meteor0,meteor1,meteor2,enemyShip,blueLaser,redLaser;
+		
 		function init() {
 
 			// makes canvas as the stage
 			stage = new createjs.Stage(document.getElementById("canvas"));
 
 			//create ship
-			ship = new createjs.Bitmap("assets/ship2.png");
-			meteor = new createjs.Bitmap("assets/box.png");
+			ship = new createjs.Bitmap("assets/enemyShip.png");
+			meteor = new createjs.Bitmap("assets/laserBlue.png");
 			meteor1 = new createjs.Bitmap("assets/meteor.png");
 			meteor2 = new createjs.Bitmap("assets/meteor.png");
-			
+			enemyShip = new createjs.Bitmap("assets/enemyShip.png");
+			blueLaser = new createjs.Bitmap("assets/laserBlue.png");
+			redLaser = new createjs.Bitmap("assets/laserRed.png");
 
 			// Add Grant to the stage, and add it as a listener to Ticker to get updates each frame.
 			stage.addChild(ship);
 			stage.addChild(meteor);
+			
+			stage.addChild(redLaser);
+			stage.addChild(enemyShip);
+			enemyShip.x=550;
+			direction=Math.floor((Math.random() * 0) + 2);
+			
 			meteor.addEventListener("click", function(event) { alert("clicked"); });
 			meteor.y = 100;ship.y = 100;//180
 			meteor.x = 100;ship.x = 100;
@@ -99,10 +108,49 @@
 		}
 		//game loop
 		function gameLoop(){
+			moveBlue(blueLaser);
+			moveRed(redLaser);
+			moveEnemy();
+		}
+		function moveBlue(laser){
+			if(laser.x<600){
+				laser.x += 5;
+			}
+			else if(laser.x>=600){
+				stage.removeChild(blueLaser);
+				resetLaser=0;
+			}
+			if(enemyShip.y>=laser.y-45&&enemyShip.y<=laser.y+5&&enemyShip.x <= laser.x+10&&enemyShip.x >= laser.x-35){
+				stage.removeChild(blueLaser);
+			}
+		}
+		function moveRed(laser){
+			if(laser.x>0){
+				laser.x -= 6;
+			}
+			else if(laser.x<=0){
+				stage.removeChild(redLaser);
+			}
+			if(ship.y>=laser.y-45&&ship.y<=laser.y+5&&ship.x <= laser.x+10&&ship.x >= laser.x-35){
+				stage.removeChild(redLaser);
+			}			
+		}
+		function moveEnemy(){
+			if(direction==1){
+				enemyShip.y += 5;
+			}
+			else{
+				enemyShip.y -=5;
+			}
+			if(enemyShip.y >=480){
+				enemyShip.y=0;			
+			}else if(enemyShip.y<=0){
+				enemyShip.y = 480;
+			}
 		}
 		function moveMeteor(meteor){
 			
-			if(ship.x >= meteor.x || ship.x <= meteor.x + 100&&ship.y>=meteor.y && ship.y <= meteor.y - 100){
+			if(ship.y>=meteor.y+120&&ship.y<=meteor.y+170&&ship.x <= meteor.x+20&&ship.x >= meteor.x-35){
 				alert("touch");
 			}
 			meteor.x -= 5;
@@ -118,7 +166,7 @@
 		}
 		//calls function when key pressed
 		document.onkeydown = checkKey;
-		function checkKey(e) {
+		function checkKey(e) {			
 			e = e || window.event;
 			switch (e.keyCode) {
 				case 40:
@@ -132,7 +180,18 @@
 				break;
 				case 37:
 				ship.x -=shipSpeed;
-				break;			
+				break;
+				case 32:
+				if(resetLaser ==0){
+					stage.addChild(blueLaser);
+					stage.addChild(redLaser);
+					blueLaser.x = ship.x;
+					blueLaser.y=ship.y+20;
+					redLaser.x = enemyShip.x;
+					redLaser.y=enemyShip.y+20;
+					resetLaser++;
+				}
+				break;				
 			}
 			//left
 			
@@ -144,9 +203,13 @@
 			//ship.y>=meteor.y+50&&ship.y<=meteor.y+10&&ship.x <= meteor.x+30&&ship.x >= meteor.x-35
 			//u,d,l,r
 			//ship.y<=meteor.y+10&&ship.y>=meteor.y-30&&ship.x <= meteor.x+30&&ship.x >= meteor.x-38
-			if(ship.y<=meteor.y+20&&ship.y>=meteor.y-40&&ship.x <= meteor.x+20&&ship.x >= meteor.x-38){
+			if(ship.y>=meteor.y-45&&ship.y<=meteor.y+5&&ship.x <= meteor.x+10&&ship.x >= meteor.x-35){
 				alert("x");
 			}
+			//red test
+			//ship.y>=meteor.y-45&&ship.y<=meteor.y+5&&ship.x <= meteor.x+10&&ship.x >= meteor.x-35
+			//blue test
+			
 		}
 
 	</script>
