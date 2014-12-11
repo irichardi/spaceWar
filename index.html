@@ -25,7 +25,7 @@
 		var shipSpeed = 20;
 		var ship,meteor0,meteor1,meteor2,meteor3,boxPower,playStage,btnPlay,enemyShip,blueLaser,redLaser;
 		var lives=1,changeDifficulty=2;
-		var score=0,reset=0,lifeBoostLimit = 3,meteorSpeed=5,numberOfMeteor=3,resetLaser=0, direction=1,enemyHealth=1000;
+		var score=0,reset=0,lifeBoostLimit = 3,meteorSpeed=5,numberOfMeteor=3,resetLaser=0, direction=1,enemyHealth=1000,laserSpeed=5;
 		var message,endMessage;
 		var collectSound = new Audio('assets/spin.wav');
 		var destroySound = new Audio('assets/lose.wav');
@@ -158,7 +158,7 @@
 		}
 		function moveBlue(laser){
 			if(laser.x<600){
-				laser.x += 5;
+				laser.x += laserSpeed;
 			}
 			else if(laser.x>=600){
 				stage.removeChild(blueLaser);
@@ -178,7 +178,7 @@
 		}
 		function moveRed(laser){
 			if(laser.x>0){
-				laser.x -= 6;
+				laser.x -= laserSpeed+2;
 			}
 			else if(laser.x<=0){
 				stage.removeChild(redLaser);
@@ -249,18 +249,21 @@
 				lives=5;
 				meteorSpeed=3;
 				numberOfMeteor=2;
+				laserSpeed=5;
 			}
 			if(difficulty==2){
 				lifeBoostLimit=10;
 				lives=3;
 				meteorSpeed=5;
 				numberOfMeteor=3;
+				laserSpeed=7;
 			}
 			if(difficulty==3){
 				lifeBoostLimit=20;
 				lives=1;
 				meteorSpeed=7;
 				numberOfMeteor=4;
+				laserSpeed=10;
 			}
 		}
 		//meteor movement and collision with objects
