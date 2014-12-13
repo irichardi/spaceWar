@@ -1,0 +1,314 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Meteor</title>
+    <!-- CSS Section -->
+
+</head>
+<body onload="init();">
+    <canvas id="canvas" width="640" height="480" style="background-color:green;border:2px solid black;"></canvas>
+
+    <!-- Game Framework -->
+    <script type="text/javascript" src="scripts/src/createjs/events/Event.js"></script>
+	<script type="text/javascript" src="scripts/src/createjs/events/EventDispatcher.js"></script>
+	<script type="text/javascript" src="scripts/src/createjs/utils/IndexOf.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/utils/UID.js"></script>
+	<script type="text/javascript" src="scripts/src/createjs/utils/Ticker.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/geom/Matrix2D.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/geom/Point.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/geom/Rectangle.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/Shadow.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/SpriteSheet.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/Graphics.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/DisplayObject.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/Container.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/Stage.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/Bitmap.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/Sprite.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/BitmapAnimation.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/BitmapText.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/Shape.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/Text.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/display/DOMElement.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/events/MouseEvent.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/filters/Filter.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/ui/ButtonHelper.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/ui/Touch.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/utils/SpriteSheetUtils.js"></script>
+	<script type="text/javascript" src="scripts/src/easeljs/utils/SpriteSheetBuilder.js"></script>
+<script>
+var stage;
+		var shipSpeed = 10,resetLaser=0, direction=1;
+		var ship,meteor0,meteor1,meteor2,enemyShip,blueLaser,redLaser;
+		
+		function init() {
+
+			// makes canvas as the stage
+			stage = new createjs.Stage(document.getElementById("canvas"));
+
+			//create ship
+			ship = new createjs.Bitmap("assets/enemyShip.png");
+			meteor = new createjs.Bitmap("assets/laserBlue.png");
+			meteor1 = new createjs.Bitmap("assets/meteor.png");
+			meteor2 = new createjs.Bitmap("assets/meteor.png");
+			enemyShip = new createjs.Bitmap("assets/enemyShip.png");
+			blueLaser = new createjs.Bitmap("assets/laserBlue.png");
+			redLaser = new createjs.Bitmap("assets/laserRed.png");
+
+			// Add Grant to the stage, and add it as a listener to Ticker to get updates each frame.
+			stage.addChild(ship);
+			stage.addChild(meteor);
+			
+			stage.addChild(redLaser);
+			stage.addChild(enemyShip);
+			enemyShip.x=550;
+			direction=Math.floor((Math.random() * 0) + 2);
+			
+			meteor.addEventListener("click", function(event) { alert("clicked"); });
+			meteor.y = 100;ship.y = 100;//180
+			meteor.x = 100;ship.x = 100;
+
+			//ship.x >= meteor.x-55 
+			//meteor
+			//ship.x <= meteor.x+40&&meteor ship.x >= meteor.x-45
+			//ship.y>=meteor.y+120&&ship.y<=meteor.y+170
+			
+			//detects start and bottom ship.y >= meteor.y+90
+			/*
+			//detects object coordinates
+			if(ship.y <= meteor.y+160 && ship.y >= meteor.y+90){
+				alert("y");
+			}
+			*/
+			//calls game loop every second
+			createjs.Ticker.setFPS(60);
+			createjs.Ticker.addEventListener("tick", stage);
+			createjs.Ticker.addEventListener("tick", gameLoop);
+		}
+
+      //<![CDATA[
+        var CANVAS_WIDTH = 480;
+        var CANVAS_HEIGHT = 320;
+        var FPS = 30;
+        
+        var player = {
+          color: "#00A",
+          x: 50,
+          y: 270,
+          width: 20,
+          height: 30,
+          draw: function() {
+            canvas.fillStyle = this.color;
+            canvas.fillRect(this.x, this.y, this.width, this.height);
+          }
+        };
+        
+        var playerBullets = [];
+        
+        function Bullet(I) {
+          I.active = true;
+        
+          I.xVelocity = 0;
+          I.yVelocity = -I.speed;
+          I.width = 3;
+          I.height = 3;
+          I.color = "#000";
+        
+          I.inBounds = function() {
+            return I.x >= 0 && I.x <= CANVAS_WIDTH &&
+              I.y >= 0 && I.y <= CANVAS_HEIGHT;
+          };
+        
+          I.draw = function() {
+            canvas.fillStyle = this.color;
+            canvas.fillRect(this.x, this.y, this.width, this.height);
+          };
+          
+          I.update = function() {
+            I.x += I.xVelocity;
+            I.y += I.yVelocity;
+        
+            I.active = I.active && I.inBounds();
+          };
+        
+          I.explode = function() {
+            this.active = false;
+            // Extra Credit: Add an explosion graphic
+          };
+        
+          return I;
+        }
+        
+        enemies = [];
+        
+        function Enemy(I) {
+          I = I || {};
+        
+          I.active = true;
+          I.age = Math.floor(Math.random() * 128);
+          
+          I.color = "#A2B";
+        
+          I.x = CANVAS_WIDTH / 4 + Math.random() * CANVAS_WIDTH / 2;
+          I.y = 0;
+          I.xVelocity = 0
+          I.yVelocity = 2;
+        
+          I.width = 32;
+          I.height = 32;
+        
+          I.inBounds = function() {
+            return I.x >= 0 && I.x <= CANVAS_WIDTH &&
+              I.y >= 0 && I.y <= CANVAS_HEIGHT;
+          };
+        
+          I.sprite = Sprite("enemy");
+        
+          I.draw = function() {
+            this.sprite.draw(canvas, this.x, this.y);
+          };
+        
+          I.update = function() {
+            I.x += I.xVelocity;
+            I.y += I.yVelocity;
+        
+            I.xVelocity = 3 * Math.sin(I.age * Math.PI / 64);
+        
+            I.age++;
+        
+            I.active = I.active && I.inBounds();
+          };
+        
+          I.explode = function() {
+            Sound.play("explosion");
+        
+            this.active = false;
+            // Extra Credit: Add an explosion graphic
+          };
+        
+          return I;
+        };
+        
+        var canvasElement = $("<canvas width='" + CANVAS_WIDTH + 
+          "' height='" + CANVAS_HEIGHT + "'></canvas");
+        var canvas = canvasElement.get(0).getContext("2d");
+        canvasElement.appendTo('body');
+        
+        setInterval(function() {
+          update();
+          draw();
+        }, 1000/FPS);
+        
+        function update() {
+          if(keydown.space) {
+            player.shoot();
+          }
+        
+          if(keydown.left) {
+            player.x -= 5;
+          }
+        
+          if(keydown.right) {
+            player.x += 5;
+          }
+        
+          player.x = player.x.clamp(0, CANVAS_WIDTH - player.width);
+          
+          playerBullets.forEach(function(bullet) {
+            bullet.update();
+          });
+        
+          playerBullets = playerBullets.filter(function(bullet) {
+            return bullet.active;
+          });
+          
+          enemies.forEach(function(enemy) {
+            enemy.update();
+          });
+        
+          enemies = enemies.filter(function(enemy) {
+            return enemy.active;
+          });
+        
+          handleCollisions();
+        
+          if(Math.random() < 0.1) {
+            enemies.push(Enemy());
+          }
+        }
+        
+        player.shoot = function() {
+          Sound.play("shoot");
+        
+          var bulletPosition = this.midpoint();
+        
+          playerBullets.push(Bullet({
+            speed: 5,
+            x: bulletPosition.x,
+            y: bulletPosition.y
+          }));
+        };
+        
+        player.midpoint = function() {
+          return {
+            x: this.x + this.width/2,
+            y: this.y + this.height/2
+          };
+        };
+        
+        function draw() {
+          canvas.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+          player.draw();
+          
+          playerBullets.forEach(function(bullet) {
+            bullet.draw();
+          });
+        
+          enemies.forEach(function(enemy) {
+            enemy.draw();
+          });
+        }
+        
+        function collides(a, b) {
+          return a.x < b.x + b.width &&
+            a.x + a.width > b.x &&
+            a.y < b.y + b.height &&
+            a.y + a.height > b.y;
+        }
+        
+        function handleCollisions() {
+          playerBullets.forEach(function(bullet) {
+            enemies.forEach(function(enemy) {
+              if(collides(bullet, enemy)) {
+                enemy.explode();
+                bullet.active = false;
+              }
+            });
+          });
+        
+          enemies.forEach(function(enemy) {
+            if(collides(enemy, player)) {
+              enemy.explode();
+              player.explode();
+            }
+          });
+        }
+        
+        player.explode = function() {
+          this.active = false;
+          // Extra Credit: Add an explosion graphic and then end the game
+        };
+        
+        player.sprite = Sprite("player");
+        
+        player.draw = function() {
+          this.sprite.draw(canvas, this.x, this.y);
+        };
+      //]]>
+    
+
+//canvas.width = canvas.height = 300;
+
+</script>

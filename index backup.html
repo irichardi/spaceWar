@@ -20,27 +20,16 @@
 	<script src="scripts/js/frame/preloadjs41.min.js"type="text/javascript"></script>
 	<script src="scripts/js/frame/soundjs52.min.js"type="text/javascript"></script>
 	<script type="text/javascript">
-	/**
-	Name:Richard Estrada
-	File:index.html
-	Modified:12/12/2014 11:00 PM
-	Purpose: This is a challenging spaceship game where the user has to collect many stars and avoid dying.
-	History:1.4 Added sounds, physics to spaceship movements, and fixed few bugs.
-	*/
         //varaibles
 		var stage;
 		var shipSpeed = 20;
-		var ship,meteor0,meteor1,meteor2,meteor3,boxPower,playStage,btnPlay,enemyShip,blueLaser,redLaser,gameOverStage;
-		var lives=1,changeDifficulty=2,shipDifficulty=3;
+		var ship,meteor0,meteor1,meteor2,meteor3,boxPower,playStage,btnPlay,enemyShip,blueLaser,redLaser;
+		var lives=1,changeDifficulty=2;
 		var score=0,reset=0,lifeBoostLimit = 3,meteorSpeed=5,numberOfMeteor=3,resetLaser=0, direction=1,enemyHealth=1000,laserSpeed=5;
 		var message,endMessage;
 		var collectSound = new Audio('assets/spin.wav');
 		var destroySound = new Audio('assets/lose.wav');
 		var music = new Audio('assets/music.mp3');
-		var laserSound = new Audio('assets/laser.mp3');
-		var losingMusic = new Audio('assets/losing.mp3');
-		var hasFinished = false;
-		var lasers = [];
 		//loops through sound
 		music.loop=true;
 		function init() {
@@ -50,7 +39,6 @@
 			stage.enableMouseOver(20);
 			//create objects
 			ship = new createjs.Bitmap("assets/ship2.png");
-			gameOverStage = new createjs.Bitmap("assets/gameOver.jpg");
 			meteor0 = new createjs.Bitmap("assets/meteor.png");
 			meteor1 = new createjs.Bitmap("assets/meteor.png");
 			meteor2 = new createjs.Bitmap("assets/meteor.png");
@@ -72,9 +60,6 @@
 		//start screen with play option and initializes values
 		function startScreen(){
 			createjs.Ticker.addEventListener("tick", stage);
-			if(hasFinished==true){
-				playStage= gameOverStage;
-			}
 			stage.addChild(playStage);
 			var circle = new createjs.Shape();
 			var difficultyOption = new createjs.Shape();
@@ -113,8 +98,6 @@
 				}
 			});
 			circle.on("click", function() {
-				losingMusic.pause();
-				losingMusic.currentTime = 0;
 				message.x = 0;
 				message.y = 10;
 				stage.removeChild(messageEnd);
@@ -135,6 +118,8 @@
 			// Add Grant to the stage, and add it as a listener to Ticker to get updates each frame.
 			stage.addChild(message);
 			stage.addChild(ship);
+			stage.addChild(enemyShip);
+			enemyShip.x=550;
 			if(numberOfMeteor>=2){
 				stage.addChild(meteor0);
 				stage.addChild(meteor1);
@@ -155,7 +140,6 @@
 		}
 		//game loop
 		function gameLoop(){
-			update();
 			if(numberOfMeteor>=2){
 				moveMeteor(meteor0);
 				moveMeteor(meteor1);
@@ -229,10 +213,6 @@
 		document.onkeydown = keyPress;
 		//moves the box
 		function moveBox(box){
-			if(score==shipDifficulty){
-				stage.addChild(enemyShip);
-				enemyShip.x=550;
-			}
 			//moves box while user still has life
 			if(lives>0){
 				box.x -= 2;
@@ -263,22 +243,13 @@
 		function updateText(){
 			message.text="Lives:"+lives+new Array(42).join(' ')+"Stars:"+score+new Array(22).join(' ')+"Enemy Health:"+enemyHealth;
 		}
-		//controls how difficult the game is.
 		function setSettings(difficulty){
-		//level of difficulty
-		//life boost controls how many stars the user has to collect before getting an extra life.
-		//lives control how many lives the user has.
-		//meteor speed controls how fast meteors go.
-		//number of meteors adjust how many meteors will be placed.
-		//laser speed controls the speed of the lasers.
-		//ship difficulty controls how strong it is and when the ship will appear based on stars encase meteors aren't challenging enough.
 			if(difficulty==1){
 				lifeBoostLimit=5;
 				lives=5;
 				meteorSpeed=3;
 				numberOfMeteor=2;
 				laserSpeed=5;
-				shipDifficulty=5;
 			}
 			if(difficulty==2){
 				lifeBoostLimit=10;
@@ -286,7 +257,6 @@
 				meteorSpeed=5;
 				numberOfMeteor=3;
 				laserSpeed=7;
-				shipDifficulty=3;
 			}
 			if(difficulty==3){
 				lifeBoostLimit=20;
@@ -294,7 +264,6 @@
 				meteorSpeed=7;
 				numberOfMeteor=4;
 				laserSpeed=10;
-				shipDifficulty=1;
 			}
 		}
 		//meteor movement and collision with objects
@@ -331,14 +300,10 @@
 		function gameOver(){
 			music.pause();
 			music.currentTime = 0;
-			hasFinished=true;
-			losingMusic.play();
 			//display end message
 			startScreen();
-			messageEnd.x = 140;
-			messageEnd.y = 100;
-			messageEnd.color="red";
-			messageEnd.font="bold 36px Arial";
+			messageEnd.x = 250;
+			messageEnd.y = 200;
 			messageEnd.text="You collected "+score+" stars!";
 			stage.addChild(messageEnd);
 			//turns off everything
@@ -349,9 +314,24 @@
 			stage.removeChild(meteor2);
 			stage.removeChild(meteor3);
 			stage.removeChild(boxPower);
+			
 		}
+		document.onkeydown = keyPress;
 		//move ship on key pressed and keeps ship on screen
 		function keyPress(e) {
+			e = e || window.event;
+			if(ship.x > -20 && e.keyCode ==37){
+				ship.x -=shipSpeed;
+			}
+			else if(ship.x <580 && e.keyCode ==39){
+				ship.x += shipSpeed;
+			}
+			else if(ship.y<421 && e.keyCode ==40){
+				ship.y += shipSpeed;
+			}
+			else if(ship.y>0 && e.keyCode ==38){
+				ship.y -= shipSpeed;
+			}
 			if(e.keyCode==32){
 				if(resetLaser ==0 && lives>0){
 					stage.addChild(blueLaser);
@@ -361,69 +341,11 @@
 					redLaser.x = enemyShip.x;
 					redLaser.y=enemyShip.y+20;
 					resetLaser++;
-					laserSound.play();
 				}
 			}
 
 		}
-var x = 150,
-    y = 150,
-    velY = 0,
-    velX = 0,
-    speed = 2,
-    friction = 0.98,
-    keys = [];
 
-	//physics code from http://jsfiddle.net/loktar/dMYvG/
-function update() {					
-    if (keys[38]) {
-        if (velY > -speed) {
-            velY--;
-        }
-    }
-    
-    if (keys[40]) {
-        if (velY < speed) {
-            velY++;
-        }
-    }
-    if (keys[39]) {
-        if (velX < speed) {
-            velX++;
-        }
-    }
-    if (keys[37]) {
-        if (velX > -speed) {
-            velX--;
-        }
-    }
-
-    velY *= friction;
-    y += velY;
-    velX *= friction;
-    x += velX;
-
-    if (x >= 495) {
-        x = 495;
-    } else if (x <= 5) {
-        x = 5;
-    }
-
-    if (y > 440) {
-        y = 440;
-    } else if (y <= 5) {
-        y = 5;
-    }
-
-    ship.x=x;
-	ship.y=y;
-}
-document.body.addEventListener("keydown", function (e) {
-    keys[e.keyCode] = true;
-});
-document.body.addEventListener("keyup", function (e) {
-    keys[e.keyCode] = false;
-});
 
 	</script>
 </body>
